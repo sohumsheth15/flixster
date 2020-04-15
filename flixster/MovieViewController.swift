@@ -7,12 +7,17 @@
 //
 
 import UIKit
+import AlamofireImage
 
-class MovieViewController: UIViewController {
+class MovieViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    
 
+    @IBOutlet weak var table_view: UITableView!
     var movies = [[String:Any]]()
     override func viewDidLoad() {
         super.viewDidLoad()
+        table_view.delegate = self
+        table_view.dataSource = self
 
         let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed")!
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
@@ -25,6 +30,8 @@ class MovieViewController: UIViewController {
               let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
             
             self.movies = dataDictionary["results"] as! [[String:Any]]
+            
+            self.table_view.reloadData()
               // TODO: Get the array of movies
               // TODO: Store the movies in a property to use elsewhere
               // TODO: Reload your table view data
@@ -33,6 +40,29 @@ class MovieViewController: UIViewController {
         }
         task.resume()
     }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return movies.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell") as! MovieCell
+        let movie = movies[indexPath.row]
+        let title = movie["title"] as! String
+        let synopsis = movie["overview"] as! String
+        
+        let base_url = "https://image.tmdb.org/t/p/w185"
+        let poster_path = movie["poster_path"] as! String
+        let poster_url = URL(string: base_url + poster_path)
+        cell.title_label.text = title
+        cell.synopsis_label.text = synopsis
+        cell.poster_view.af_setImage(withURL: poster_url!)
+        
+        
+        
+        return cell
+    }
+    
     
 
     /*
